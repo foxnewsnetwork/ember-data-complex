@@ -1,4 +1,5 @@
 # Ember-data-complex
+[![Build Status](https://travis-ci.org/foxnewsnetwork/ember-data-complex.svg)](https://travis-ci.org/foxnewsnetwork/ember-data-complex)
 
 An extension of / set of patterns for the very popular Ember Data to help build data models that require complex adapter / serializer strategy. 
 
@@ -105,7 +106,7 @@ Completely incomprehensible academic horseshit aside, the arrow idea is actually
 In continuing with the truck example, you can take advantage of arrows in your strategies:
 
 ```coffee
-`import { lift, ifA } from 'ember-data-complex/utils/arrows'`
+import { lift, ifA } from 'ember-data-complex/utils/arrows'
 
 # strategies/truck.coffee
 TruckStrategy = DSC.Strategy.create
