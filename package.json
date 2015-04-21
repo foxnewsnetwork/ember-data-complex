@@ -1,7 +1,7 @@
 {
   "name": "ember-data-complex",
-  "version": "0.0.0",
-  "description": "The default blueprint for ember-cli addons.",
+  "version": "0.0.1-beta",
+  "description": "Ember data extension for building complex multi-adapter models",
   "directories": {
     "doc": "doc",
     "test": "tests"
@@ -11,15 +11,15 @@
     "build": "ember build",
     "test": "ember try:testall"
   },
-  "repository": "",
+  "repository": "https://github.com/foxnewsnetwork/ember-data-complex",
   "engines": {
     "node": ">= 0.10.0"
   },
-  "author": "",
+  "author": "Thomas Chen",
   "license": "MIT",
   "devDependencies": {
     "broccoli-asset-rev": "^2.0.2",
-    "ember-cli": "0.2.3",
+    "ember-cli": "0.2.2",
     "ember-cli-app-version": "0.3.3",
     "ember-cli-content-security-policy": "0.4.0",
     "ember-cli-dependency-checker": "0.0.8",
@@ -34,10 +34,15 @@
     "ember-try": "0.0.4"
   },
   "keywords": [
-    "ember-addon"
+    "ember-addon",
+    "model",
+    "data",
+    "complex",
+    "multi-adapter"
   ],
   "dependencies": {
-    "ember-cli-babel": "^5.0.0"
+    "ember-cli-babel": "^5.0.0",
+    "ember-cli-coffeescript": "0.10.0"
   },
   "ember-addon": {
     "configPath": "tests/dummy/config"
