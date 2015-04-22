@@ -10,6 +10,7 @@ class DSC
   @Strategy = Strategy
   @Macros = Macros
   @Arrows = Arrows
+  @truthy = Arrows.truthy
   @getAttributes = getAttributes
   @async = async
   @ifA = Arrows.ifA

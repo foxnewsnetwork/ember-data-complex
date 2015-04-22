@@ -107,6 +107,7 @@ class Arrows
   @liftA = lift
   @promiseLift = promiseLift
   @polarize = polarize
+  @truthy = truthy
   constructor: (x) ->
     if isfun x
       @core = x
@@ -152,5 +153,6 @@ Arrows.id = id
   arrowLike,
   promiseLike,
   promiseLift,
-  isfun
+  isfun,
+  truthy
 }`
