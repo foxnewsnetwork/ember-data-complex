@@ -1,9 +1,11 @@
-# Ember-data-complex
+# Ember Data Complex
 [![Build Status](https://travis-ci.org/foxnewsnetwork/ember-data-complex.svg)](https://travis-ci.org/foxnewsnetwork/ember-data-complex)
 
 An extension of / set of patterns for the very popular Ember Data to help build data models that require complex adapter / serializer strategy. 
 
 For when you need a model with attributes that come from differing adapters.
+
+*this is beta software*
 
 ## Example
 
@@ -114,6 +116,31 @@ DSC.async ->
     rover.reason # returns the caught reason of why rover failed
   .end()
 ```
+
+*important*
+If you intend on using es6 generators and coffeescript concurrently in your ember app, there is currently an issue where ember-cli-coffeescript doesn't pipe its output into ember-cli-babel. I've already done a pull-request to ember-cli-coffeescript, but for now, you need to use my fork of ember-cli-coffeescript at:
+
+https://github.com/foxnewsnetwork/ember-cli-coffeescript
+
+*also important*
+we're still waiting on ember-cli-babel to properly polyfill calls to the rengeratorRuntime in areas that want to use es6 generators. You can see the progress of this issue here:
+
+https://github.com/babel/ember-cli-babel/issues/24
+
+For now, the work-around is to manually copy-and-paste the following file:
+
+https://github.com/facebook/regenerator/blob/master/runtime.js
+
+from facebook's regenerator repo into your vendor/ directory, and then edit your brocfile so it says:
+
+```js
+// Brocfile.js
+// other stuff
+app.import("vendor/regenerator.js");
+// other stuff
+```
+
+
 the case for using DSC.ifA instead of javascript's native 'if' is that ifA is a lot more context-aware.
 
 ifA runs the thenA block if the thing you gave it is:
