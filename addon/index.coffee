@@ -3,6 +3,7 @@
 `import getAttributes from './utils/get-attributes'`
 `import Arrows from './utils/arrows'`
 `import Base from './models/base'`
+`import async from './utils/async'`
 
 class DSC
   @ModelComplex = Base
@@ -10,5 +11,7 @@ class DSC
   @Macros = Macros
   @Arrows = Arrows
   @getAttributes = getAttributes
+  @async = async
+  @ifA = Arrows.ifA
   
 `export default DSC`

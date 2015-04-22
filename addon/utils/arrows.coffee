@@ -64,13 +64,18 @@ fork = (f, g) ->
 truthy = (x) ->
   return false if Ember.isBlank x
   return false if x is false
+  return false if x instanceof Error
   true
 
 # A macro for writing either forks
 # polarize takes a yes/no function
 # then wraps the parameter to the 
 # yes/no in an either
-ifA = polarize = (f) ->
+ifA = (f) ->
+  lift f
+  .compose polarize f
+  
+polarize = (f) ->
   new Arrows (x) ->
     lift(f).run x
     .then (successful) -> if truthy(successful) then Either.resolve(x) else Either.reject(x)
@@ -82,10 +87,10 @@ debugLog = (x) ->
 
 class Either
   @resolve = (x) ->
-    return x if x.payload? and x.isGood?
+    return x if x? and x.payload? and x.isGood?
     new Either true, x
   @reject = (x) ->
-    return x if x.payload? and x.isGood?
+    return x if x? and x.payload? and x.isGood?
     new Either false, x
   constructor: (@isGood, @payload) ->
   isResolved: -> @isGood
@@ -97,6 +102,7 @@ class Arrows
   @isfun = isfun
   @arrowLike = arrowLike
   @promiseLike = promiseLike
+  @ifA = ifA
   @lift = lift
   @liftA = lift
   @promiseLift = promiseLift
@@ -108,6 +114,8 @@ class Arrows
       @core = -> x
   run: ->
     promiseLift @core arguments...
+  end: ->
+    @run arguments...
   compose: (f) ->
     compose @, f
   composeResolve: (f) ->
@@ -116,8 +124,10 @@ class Arrows
     composeReject @, f
   fork: (f) ->
     fork @, f
+  thenA: (f) ->
+    dobindResolve @, f
   elseA: (f) ->
-    fork @, f
+    dobindReject @, f
   dobind: (f) ->
     dobind @, f
   await: (f) ->
@@ -140,5 +150,7 @@ Arrows.id = id
   Either,
   debugLog,
   arrowLike,
-  promiseLike
+  promiseLike,
+  promiseLift,
+  isfun
 }`

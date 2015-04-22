@@ -18,4 +18,8 @@ var app = new EmberAddon();
 // please specify an object with the list of modules as keys
 // along with the exports of each module as its value.
 
+// TODO: Remove the following line once @stefpenner makes ember-cli-babel
+// able to inject the regenerator on demand
+app.import("vendor/regenerator.js");
+
 module.exports = app.toTree();

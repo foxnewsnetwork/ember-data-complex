@@ -99,6 +99,39 @@ Note that, you should always return a promise from onFind. When that promise res
 In this way, you can think of your master truck as a purely lazy data structure and the strategy object as a way of evaluating (aka normal-forming) that lazy structure. If you've done parallel haskell, this is the Eval Monad applied here to front-end models.
 
 ## Regarding promises and strategies
+This library ships with a small async library for using es6 generators to deal with stuff. Here is an example:
+
+```coffee
+DSC.async ->
+  rover = yield find "dog", "rover"
+
+  DSC.ifA rover
+  .thenA ->
+    rover.get "id" # rover
+  .elseA ->
+    rover instanceof Error # true
+    rover.message # unable to find rover
+    rover.reason # returns the caught reason of why rover failed
+  .end()
+```
+the case for using DSC.ifA instead of javascript's native 'if' is that ifA is a lot more context-aware.
+
+ifA runs the thenA block if the thing you gave it is:
+
+* a promise resolving to something truthy
+* truthy (that is, not blank, not null, but 0 is ok)
+* a function that returns something truthy
+
+ifA runs the elseA block (if you provided one) if the thing you gave it:
+
+* is not truthy (null, "", false)
+* a promise resolving to something not truthy
+* a function that returns something not truthy
+* something that is an instanceof Error
+
+if you don't call end() (or run()) at the end of an DSC.ifA block, then no evaluation happens and you just have an arrow (see next section). For all intents and purposes, arrows are objects with a run function and can be composed in various interesting ways that a mere function can't. This allows you to do really clever but incredibly ill-advised meta programming.
+
+## Regarding arrows
 For those interested in writing elegant (although newbie-unfriendly) code with promises, it should be noted promises are more than monadic (read about them here: http://en.wikipedia.org/wiki/Monad_(functional_programming) ) they are also an arrow (read about them here: https://www.haskell.org/arrows/ ).
 
 Completely incomprehensible academic horseshit aside, the arrow idea is actually extremely helpful to writing non-cancerous code with promises. DataComplex ships with a small Arrow library to faciliate this.
