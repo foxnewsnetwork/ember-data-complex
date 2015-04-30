@@ -10,7 +10,6 @@ Or you just passed an object or something weird like that.
 
 assertIterator = (maybeGen) ->
   unless maybeGen? and isfun(maybeGen.next) and isfun(maybeGen.return)
-    window.maybeGen = maybeGen
     throw new Error errormsg
 
 makeError = (reason) ->
@@ -31,4 +30,24 @@ asyncCore = (iterator, fulfillment) ->
 async = (generator) ->
   asyncCore generator()
 
+syncReduce = (init, xs, iterator) ->
+  return init if Ember.isBlank xs
+  [x, rest...] = xs
+  promiseLift init
+  .then (init) ->
+    iterator(init, x)
+  .then (next) ->
+    syncReduce next, rest, iterator
+
+asyncMapWimpy = (ctx, xs, cb) ->
+  Ember.RSVP.all Ember.EnumerableUtils.map xs, cb, ctx
+asyncMap = (ctx, xs, cb) ->
+  Ember.RSVP.allSettled Ember.EnumerableUtils.map xs, cb, ctx
+
 `export default async`
+`export {
+  async,
+  syncReduce,
+  asyncMap,
+  asyncMapWimpy
+}`

@@ -183,3 +183,10 @@ test 'dobindResolve', (assert) ->
     assert.equal actual, "au"
   agchemy.run().then (actual) ->
     assert.equal actual, "ag"
+
+test 'fmap', (assert) ->
+  hosts = Arrows.lift ['go', 'javascript', 'ruby', 'haskell', 'clojure', 'elixir']
+  appendLang = Arrows.lift (x) -> x + " sucks"
+  transform = hosts.fmap appendLang
+  transform.run().then (actual) ->
+    assert.deepEqual actual, ['go sucks', 'javascript sucks', 'ruby sucks', 'haskell sucks', 'clojure sucks', 'elixir sucks']

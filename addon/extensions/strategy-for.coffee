@@ -1,4 +1,4 @@
-strategyFor = (key) ->
+strategyFor = (key, tactic) ->
   if typeof key is "string"
     # Ember resolver defaults to just adding an "s"
     # and the only way to get proper pluralization
@@ -7,10 +7,10 @@ strategyFor = (key) ->
     strategy = @container.lookupFactory "strategie:#{key}"
   else
     strategy = key
-
-  if strategy?
-    strategy.store ?= @
-    strategy.container ?= @container
-  strategy
+  return unless strategy? and typeof strategy.create is 'function'
+  strategy.create
+    tactic: tactic
+    store: @
+    container: @container
 
 `export default strategyFor`

@@ -1,20 +1,10 @@
-`import Ember from 'ember'`
 `import DS from 'ember-data'`
-Core = 
-  id: "bravo-666"
-  location: "applebees"
 
-Fixture =
-  truck: Core
+TrucksBravoAdapter = DS.ActiveModelAdapter.extend
+  namespace: 'bravo'
+  pathForType: (type) ->
+    @_super "truck"
 
-Fixtures = 
-  trucks: [Core]
-
-TrucksBravoAdapter = DS.RESTAdapter.extend
-  find: ->
-    new Ember.RSVP.Promise (resolve) -> resolve Fixture
-
-  findAll: ->
-    new Ember.RSVP.Promise (resolve) -> resolve Fixtures
+  allAoiEirSongsSoundTheSame: ->
 
 `export default TrucksBravoAdapter`

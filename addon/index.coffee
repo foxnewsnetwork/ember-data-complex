@@ -1,4 +1,6 @@
 `import Strategy from './models/strategy'`
+`import FallbackCacheTactic from './tactics/fallback-cache'`
+`import CreativeDelegationTactic from './tactics/creative-delegation'`
 `import Macros from './utils/macros'`
 `import getAttributes from './utils/get-attributes'`
 `import Arrows from './utils/arrows'`
@@ -8,11 +10,14 @@
 class DSC
   @ModelComplex = Base
   @Strategy = Strategy
+  @FallbackCacheTactic = FallbackCacheTactic
+  @CreativeDelegationTactic = CreativeDelegationTactic
   @Macros = Macros
   @Arrows = Arrows
   @truthy = Arrows.truthy
   @getAttributes = getAttributes
   @async = async
   @ifA = Arrows.ifA
+  @belongsTo = Macros.through
   
 `export default DSC`

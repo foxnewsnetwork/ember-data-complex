@@ -2,5 +2,4 @@
 
 TrucksBravo = DS.Model.extend
   location: DS.attr "string"
-
 `export default TrucksBravo`

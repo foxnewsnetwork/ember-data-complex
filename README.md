@@ -5,7 +5,7 @@ An extension of / set of patterns for the very popular Ember Data to help build 
 
 For when you need a model with attributes that come from differing adapters.
 
-*this is beta software*
+All the tests pass and I'm using it in my own projects fine... but *this is alpha software* 
 
 ## Example
 
@@ -50,13 +50,15 @@ Truck = DSC.ModelComplex.extend
   railsId: DS.attr "string"
   s3Id: DS.attr "string"
 
-  fire: DSC.Macros.through "fires/truck", "fireId"
-  rails: DSC.Macros.through "rails/truck", "railsId"
-  s3: DSC.Macros.through "s3/truck", "s3id"
+  fire: DSC.belongsTo "fires/truck", "fireId"
+  rails: DSC.belongsTo "rails/truck", "railsId"
+  s3: DSC.belongsTo "s3/truck", "s3id"
 ```
-Here, DSC.Macros.through is just a macro over store.find; it works a lot like DS.belongsTo except it returns a computed property instead of a relationship. This is important because rails/truck and s3/truck have different adapters than truck, so a regular DS relationship won't work.
+Here, DSC.Macros.through is just a macro over store.find; it works a lot like DS.belongsTo except it returns a computed property instead of a relationship. This is important because in general rails/truck and s3/truck will different adapters than truck, so a regular DS relationship won't work here.
 
-Next, you'll need to declare your peasant slave models:
+Incidentally, this means DSC.belongsTo is *always* async.
+
+Next, you'll need to declare your peasant slave models; these are just regular DS.Models.
 ```coffee
 # models/fires/truck.coffee
 Truck = DS.Model.extend
@@ -84,21 +86,84 @@ truck.get("rails").save()
 truck.save()
 truck.destroy()
 ```
-However, DataComplex allows you to declare strategies regarding how your group of models should be found, saved, updated and destroyed:
+But so far, Data Complex has done nothing that Data couldn't do for you (after all, you had to declare everything you needed to using regular Ember Data).
+
+However, DataComplex allows you to declare strategies regarding how your group of models should be found, saved, updated and destroyed (updated and destroyed not yet implemented, sorry, lol):
 
 ```coffee
 # strategies/truck.coffee
-TruckStrategy = DSC.Strategy.create
-  onFind: (masterTruck) ->
+TruckStrategy = DSC.Strategy.extend
+  # the one argument is a promise to your model from upstream
+  onFindById: (masterTruck) ->
     masterTruck.then (truck) ->
       truck.get("fire").then -> truck
     .then (truck) ->
       truck.get("rails").then -> truck
     .then whatever
+  onFindAll: (trucks) -> ...
+  onFindByQuery: (trucks) -> ...
+  # runs when save is called on your new model,
+  # but before it is scheduled and marked inflight in the adapter
+  # unsavedTruck is NOT a promise and is instead an DS.Model
+  beforeCreate: (unsavedTruck) -> ...
 ```
 Note that, you should always return a promise from onFind. When that promise resolves (or rejects), DataComplex will automatically resolve out to the original truck you tried to @store.find on.
 
-In this way, you can think of your master truck as a purely lazy data structure and the strategy object as a way of evaluating (aka normal-forming) that lazy structure. If you've done parallel haskell, this is the Eval Monad applied here to front-end models.
+In this way, you can think of your master truck as a purely lazy data structure (evaluted to Weak-Head Normal Form) and the strategy object as a way of evaluating (aka normal-forming) that lazy structure. If you've done parallel haskell, this is the Eval Monad applied here to front-end models.
+
+## Tactic Mixins for Strategy
+Strategies wind up sharing a lot of common code. So far, DSC ships with 2 tactics (mixins) for your convenience.
+
+1. Creative Delegation
+```coffee
+TruckStrategy = DSC.Strategy.extend DSC.CreativeDelegationTactic,
+  # your stuff
+  ...
+```
+CreativeDelegation provides a beforeCreate method so you can pass in embedded objects and get them all created:
+```coffee
+store.createRecord "truck"
+  s3:
+    shippingDocs: somefile
+    weightPass: someotherfile
+  rails:
+    licensePlate: 'yoshi-420'
+    driver: 'mario'
+  fire:
+    latitude: 66.6
+    longitude: 66.6
+    licensePlate: 'yoshi-420'
+    driver: 'mario'
+  .save() # creates the master truck, and slave s3, rails, and fire trucks, and ties them all together
+  .then -> # stuff
+  .catch (error) ->
+    error.message # some long-winded thing
+    error.orphans # models that saved successfully
+    error.deadChildren # an array of objects with data on the children that failed to persist
+```
+If any of the children fail, the entire save process will fail, and you can catch and cleanup as necessary.
+
+A custom error object with what I personally needed is provided you.
+
+2. Fallback Cache
+```coffee
+TruckStrategy = DSC.Strategy.extend DSC.FallbackCacheTactic,
+  order: ['fire', 'rails']
+  # your stuff
+  ...
+```
+You must specify an order to your caching and FallbackCache will provide onFindById and onFindAll methods.
+
+Given your specified cache order, suppose truck#77 exists only in your rails upstream, but not fire upstream...
+```coffee
+store.find "truck", 77
+```
+Will find your truck, miss the cache hit to fire, try rails, succeed, then store.createRecord "fires/truck" to the fire cache.
+
+If all your cache tiers fall through (aka you have no slaves on your master), the promise will reject.
+
+3. TODOS: probably add an UpdativeDelegation and FamilyObliteration tactics to round out the basic use cases.
+
 
 ## Regarding promises and strategies
 This library ships with a small async library for using es6 generators to deal with stuff. Here is an example:

@@ -1,21 +1,9 @@
-`import Ember from 'ember'`
 `import DS from 'ember-data'`
-Core = 
-  id: 2
-  bravoId: "bravo-666"
-  charlieId: "charlie-420"
 
-Fixture =
-  truck: Core
+TruckAdapter = DS.ActiveModelAdapter.extend
+  namespace: 'master'
 
-Fixtures = 
-  trucks: [Core]
-
-TruckAdapter = DS.RESTAdapter.extend
-  find: ->
-    new Ember.RSVP.Promise (resolve) -> resolve Fixture
-
-  findAll: ->
-    new Ember.RSVP.Promise (resolve) -> resolve Fixtures
-
+  createRecord: (store, type, snapshot) ->
+    @_super arguments...
+    
 `export default TruckAdapter`
