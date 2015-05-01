@@ -84,8 +84,12 @@ FallbackCacheTactic = Ember.Mixin.create
         [master, missingPositions, slave]
     .then ([master, missingPositions, slave]) =>
       Ember.assert noCacheMsg(master), Ember.isPresent slave
-      @fillPositionsWithSlave masterPromise, missingPositions, slave
-      .then -> master.save()
+      @fillPositionsWithSlave master, missingPositions, slave
+      .then -> 
+        if master.get "isDirty"
+          master.save()
+        else
+          master
 
   onFindAll: (mastersPromise) ->
     promiseLift mastersPromise

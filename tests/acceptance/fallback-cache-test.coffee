@@ -27,8 +27,15 @@ test "sanity", (assert) ->
   assert.ok store, "store should be ok"
   assert.equal typeof store.find, 'function', "store should have find"
 
-test 'onFindById sanity', (assert) ->
+test 'onFindById cache hit', (assert) ->
   Ember.run ->
+    Truck = container.lookupFactory "model:truck"
+    assert.equal typeof Truck.prototype.save, 'function', 'should be able to modify the truck"s save'
+    oldSave = Truck.prototype.save
+    Truck.reopen
+      save: ->
+        assert.ok false, "as no changes occur on a cache hit, master should not require saving"
+        oldSave.apply @. arguments
     store.find 'truck', 'master-1'
     .then (master) ->
       assert.ok master, "should be ok"
@@ -36,6 +43,9 @@ test 'onFindById sanity', (assert) ->
       assert.equal master.get("id"), 'master-1'
       assert.equal master.get("bravoId"), 'bravo-1'
       assert.equal master.get("charlieId"), 'charlie-1'
+    .finally ->
+      Truck.reopen
+        save: oldSave
 
 test 'onFindById missing bravo', (assert) ->
   Ember.run ->
