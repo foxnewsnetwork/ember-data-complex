@@ -1,6 +1,6 @@
 {
   "name": "ember-data-complex",
-  "version": "0.0.3-alpha-2",
+  "version": "0.0.3-alpha-3",
   "description": "Ember data extension for building complex multi-adapter models",
   "directories": {
     "doc": "doc",
