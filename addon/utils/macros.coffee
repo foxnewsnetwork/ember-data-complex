@@ -1,4 +1,5 @@
 `import Ember from 'ember'`
+`import { promiseLike, promiseLift } from './arrows'`
 
 noStoreMsg = """
 You tried to declare a model-through computed macro on an object that didn't have a 'store' property.
@@ -39,6 +40,16 @@ Consult the following example for an idea how to declare belongsTo relationships
     ownerId: DS.attr "string"
     owner: DSC.belongsTo "owner", foreignKey: "ownerId"
 """
+noPField = """
+You tried to specify an asyncBelongsTo relationship, but you neglected to provide a promise field.
+The whole point behind asyncBelongsTo as oppose to Ember's native DS.belongsTo is to be explicit,
+as in you're explicit about which field contains the foreignKey and which field contains the promise.
+Consider the following example:
+
+  Dog = DSC.ModelComplex.extend
+    ownerId: DS.attr "string"
+    owner: DSC.asyncBelongsTo "owner", foreignKey: "ownerId", promiseField: "ownerPromise"
+"""
 notDataComplex = (model) -> """
 You tried to use a DSC.belongsTo on #{model}, but #{model} doesn't act like a DSC.ModelComplex.
 Insofar as it doesn't have a '-dsc-tempstorage' key (among other things). If you're to use DSC.belongsTo,
@@ -67,9 +78,48 @@ belongsToGet = (ctx, modelName, idField) ->
     ctx.store.find modelName, id
   else
     ctx['-dsc-tempstorage'].data["#{modelName}::#{idField}"]
-  
+
+idLike = (something) ->
+  typeof something is "string" or typeof something is "number"
 
 class Macros
+  @asyncBelongsTo = (modelName, idField, promiseField) ->
+    {foreignKey: idField, promiseField} = idField if typeof idField is 'object'
+    Ember.assert noModelName, modelName?
+    Ember.assert noFKey, idField?
+    Ember.assert noPField, promiseField?
+    f = (modelField, model) ->
+      if arguments.length > 1
+        switch
+          when promiseLike model
+            @set promiseField, model
+          when idLike model
+            @set idField, model
+          else
+            f.hasResolved = true
+            f.resolvedValue = model
+            @set idField, Ember.get(model, "id")
+            @set promiseField, promiseLift model
+      return f.resolvedValue if f.hasResolved is true
+      if promise = @get promiseField
+        promise.then (model) => 
+          @set modelField, model
+        return
+      if id = @get idField
+        promise = @store.find(modelName, id).then (model) => 
+          @set modelField, model
+          model
+        @set promiseField, promise
+        return
+    prop = Ember.computed modelName, idField, promiseField, f
+    prop.meta
+      relationType: "complex-belongs-to"
+      idField: idField
+      promiseField: promiseField
+      modelName: modelName
+    prop
+
+
   @through = (modelName, idField) ->
     idField = idField.foreignKey if idField.foreignKey?
     Ember.assert noModelName, modelName?

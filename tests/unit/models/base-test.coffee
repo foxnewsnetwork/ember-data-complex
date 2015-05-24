@@ -58,3 +58,31 @@ test 'tempStorage should work on creation also', (assert) ->
       idField: "charlieId"
       modelName: "trucks/charlie"
       slaveName: "charlie"
+
+test "it should just work with the changed belongsTo", (assert) ->
+  charlie =
+    createdAt: new Date "April 27, 2015"
+    licensePlate: "hikari-are"
+  bravo =
+    location: 'neverland'
+  delta = 
+    songName: "netoge haijin sprechchor"
+    artist: "wotamin"
+  model = @subject charlie: charlie, bravo: bravo, delta: delta
+  thing = model.get "delta"
+  assert.deepEqual thing, delta
+
+test "it should have 3 related types", (assert) ->
+  charlie =
+    createdAt: new Date "April 27, 2015"
+    licensePlate: "hikari-are"
+  bravo =
+    location: 'neverland'
+  delta = 
+    songName: "netoge haijin sprechchor"
+    artist: "wotamin"
+  model = @subject charlie: charlie, bravo: bravo, delta: delta
+  fields = Ember.get model.constructor, "fields"
+  assert.equal fields.size, 3
+  assert.ok typeof model.constructor.eachComputedProperty is 'function'
+  

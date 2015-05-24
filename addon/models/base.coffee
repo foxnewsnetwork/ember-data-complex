@@ -10,8 +10,6 @@ calculateOperation = (record) ->
     when get(record, "isDeleted") then "beforeDestroy"
     else "beforeUpdate"
 
-# TODO: implement advanced features for:
-# #save, #update, and #destroy
 Base = DS.Model.extend
   init: ->
     @['-dsc-tempstorage'] =

@@ -5,21 +5,19 @@ router = express.Router()
 router.use bodyParser.json()
 router.use bodyParser.urlencoded extended: true
 Core = 
-  id: "master-1"
-  bravoId: "bravo-1"
-  charlieId: "charlie-1"
-  deltaId: "delta-1"
-
+  id: "delta-1"
+  songName: 'yoshiwara lament'
+  artist: 'asa'
 class Truck
   _count = 1
   @trucks = [Core]
   @create = (params) ->
     _count += 1
-    params["id"] = "master-#{_count}"
+    params["id"] = "delta-#{_count}"
     truck = new Truck params
     Truck.trucks.push truck
     truck
-  constructor: (id: @id, bravoId: @bravoId, charlieId: @charlieId) ->
+  constructor: (id: @id, songName: @songName, artist: @artist) ->
 
 first = ([out, ...]) -> out
 
@@ -30,7 +28,10 @@ router.get '/', (req, res) ->
   res.send trucks: Truck.trucks
 
 router.post '/', (req, res) ->
-  res.send truck: Truck.create req.body.truck
+  if req.body.truck['song_name'] is 'clusterfuck'
+    res.status(400).end()
+  else
+    res.send truck: Truck.create req.body.truck
 
 router.get '/:id', (req, res) ->
   truck = findById(Truck.trucks, req.params.id.trim())
@@ -50,4 +51,4 @@ router.delete '/:id', (req, res) ->
   res.status(204).end()
 
 module.exports = (app) ->
-  app.use '/master/trucks', router
+  app.use '/delta/trucks', router

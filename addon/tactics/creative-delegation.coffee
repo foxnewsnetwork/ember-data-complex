@@ -48,6 +48,28 @@ formatFailure = (results) ->
   e.deadChildren = arrangeDeadKids results
   e.orphans = collectOrphans results
   e
+legacyTempStorage = (master) ->
+  if typeof master.tempStorage is 'function'
+    master.tempStorage() ? []
+  else
+    []
+
+filterComputedProperties = (model, polarize) ->
+  props = []
+  model.constructor.eachComputedProperty (ctx, propName, meta) ->
+    if polarize ctx, propName, meta
+      props.push propName: propName, meta: meta
+  props
+modernTempStorage = (master) ->
+  filterComputedProperties master, (ctx, propName, meta) -> meta?.relationType is "complex-belongs-to"
+  .map ({propName, meta}) ->
+    attributes: master.get meta.modelName
+    metadata:
+      modelName: meta.modelName
+      slaveName: propName
+extractTempStorage = (master) ->
+  legacyTempStorage master
+  .concat modernTempStorage master
 
 CreativeDelegationTactic = Ember.Mixin.create
   saveChild: (attributes: attributes, metadata: metadata) ->
@@ -68,7 +90,7 @@ CreativeDelegationTactic = Ember.Mixin.create
         e.params = modelParams
         throw e
   beforeCreate: (master) ->
-    newthings = master.tempStorage()
+    newthings = extractTempStorage master
     transform = @tempStoragePersistenceProcess master
     asyncMap @, newthings, transform
     .then (results) ->
