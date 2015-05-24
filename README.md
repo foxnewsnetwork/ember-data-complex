@@ -50,13 +50,13 @@ Truck = DSC.ModelComplex.extend
   railsId: DS.attr "string"
   s3Id: DS.attr "string"
 
-  fire: DSC.belongsTo "fires/truck", "fireId"
-  rails: DSC.belongsTo "rails/truck", "railsId"
-  s3: DSC.belongsTo "s3/truck", "s3id"
+  fire: DSC.belongsTo2 "fires/truck", foriegnKey: "fireId", promiseField: "firePromise"
+  rails: DSC.belongsTo2 "rails/truck", foriegnKey: "railsId", promiseField: "railsPromise"
+  s3: DSC.belongsTo2 "s3/truck", foriegnKey: "s3id", promiseField: "s3Promise"
 ```
 Here, DSC.Macros.through is just a macro over store.find; it works a lot like DS.belongsTo except it returns a computed property instead of a relationship. This is important because in general rails/truck and s3/truck will different adapters than truck, so a regular DS relationship won't work here.
 
-Incidentally, this means DSC.belongsTo is *always* async.
+Incidentally, this means DSC.belongsTo2 is *always* async.
 
 Next, you'll need to declare your peasant slave models; these are just regular DS.Models.
 ```coffee
