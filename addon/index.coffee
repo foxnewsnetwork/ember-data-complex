@@ -20,5 +20,5 @@ class DSC
   @ifA = Arrows.ifA
   @belongsTo = Macros.through
   @belongsTo2 = Macros.asyncBelongsTo
-  
+  @promiseTo = Macros.promiseTo  
 `export default DSC`

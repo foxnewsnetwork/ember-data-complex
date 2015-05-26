@@ -72,7 +72,7 @@ test "it should just work with the changed belongsTo", (assert) ->
   thing = model.get "delta"
   assert.deepEqual thing, delta
 
-test "it should have 3 related types", (assert) ->
+test "it should have 4 related types", (assert) ->
   charlie =
     createdAt: new Date "April 27, 2015"
     licensePlate: "hikari-are"
@@ -83,6 +83,21 @@ test "it should have 3 related types", (assert) ->
     artist: "wotamin"
   model = @subject charlie: charlie, bravo: bravo, delta: delta
   fields = Ember.get model.constructor, "fields"
-  assert.equal fields.size, 3
+  assert.equal fields.size, 4
   assert.ok typeof model.constructor.eachComputedProperty is 'function'
   
+test "it should work with the promiseTo property", (assert) ->
+  charlie =
+    createdAt: new Date "April 27, 2015"
+    licensePlate: "hikari-are"
+  bravo =
+    location: 'neverland'
+  delta = 
+    songName: "netoge haijin sprechchor"
+    artist: "wotamin"
+  gamma =
+    songName: "hibikaze"
+    artist: "reol"
+  model = @subject charlie: charlie, bravo: bravo, delta: delta, gamma: gamma
+  thing = model.get "gamma"
+  assert.deepEqual thing, gamma

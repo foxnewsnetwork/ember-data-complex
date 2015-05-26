@@ -55,6 +55,13 @@ You tried to use a DSC.belongsTo on #{model}, but #{model} doesn't act like a DS
 Insofar as it doesn't have a '-dsc-tempstorage' key (among other things). If you're to use DSC.belongsTo,
 consider using a DSC.ModelComplex instead of a vanilla DS.Model.
 """
+notPromiseMsg = """
+You tried to set a pure value to a field which expects a promise. This is undoubtly an oversight on your part.
+"""
+alreadySetMsg = """
+The ONLY way to proper deal with resolving promises correctly is to have them be immutable,
+you've already set this promise, so you can't do it again.
+"""
 lll = (x) ->
   console.log x
   x
@@ -82,7 +89,40 @@ belongsToGet = (ctx, modelName, idField) ->
 idLike = (something) ->
   typeof something is "string" or typeof something is "number"
 
+# dockPromise: promiseTo "dock", foreignKey: "dockId", foreignValue: "dock"
+
 class Macros
+  @promiseTo = (modelName, foreignKey, foreignField) ->
+    { foreignKey, foreignField } = foreignKey if typeof foreignKey is 'object'
+    Ember.assert noModelName, modelName?
+    Ember.assert noFKey, foreignKey?
+    Ember.assert noPField, foreignField?
+    f = (promiseField, modelPromise) ->
+      if arguments.length > 1
+        throw new Error alreadySetMsg if @["-dsc-#{promiseField}-promise"]?
+        Ember.assert notPromiseMsg, promiseLike modelPromise
+        @["-dsc-#{promiseField}-promise"] = modelPromise.then (model) => 
+          @set foreignField, model
+          @set foreignKey, model.get("id")
+          model
+      return @["-dsc-#{promiseField}-promise"] if promiseLike @["-dsc-#{promiseField}-promise"]
+      if @get(foreignField)?
+        return promiseLift @get foreignField 
+        .then (model) => 
+          @set foreignKey, model.get("id") if model.get("id")?
+          model
+      if @get(foreignKey)?
+        promise = @store.find(modelName, @get foreignKey) 
+        @set promiseField, promise
+        promise
+    prop = Ember.computed modelName, foreignKey, foreignField, f
+    prop.meta
+      relationType: "complex-promise-to"
+      idField: foreignKey
+      foreignField: foreignField
+      modelName: modelName
+    prop
+
   @asyncBelongsTo = (modelName, idField, promiseField) ->
     {foreignKey: idField, promiseField} = idField if typeof idField is 'object'
     Ember.assert noModelName, modelName?

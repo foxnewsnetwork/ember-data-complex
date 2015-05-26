@@ -67,9 +67,19 @@ modernTempStorage = (master) ->
     metadata:
       modelName: meta.modelName
       slaveName: propName
+
+postModernTempStorage = (master) ->
+  filterComputedProperties master, (ctx, propName, meta) -> meta?.relationType is "complex-promise-to"
+  .map ({propName, meta}) ->
+    attributes: master.get meta.foreignField
+    metadata:
+      modelName: meta.modelName
+      slaveName: meta.foreignField
+
 extractTempStorage = (master) ->
   legacyTempStorage master
   .concat modernTempStorage master
+  .concat postModernTempStorage master
 
 CreativeDelegationTactic = Ember.Mixin.create
   saveChild: (attributes: attributes, metadata: metadata) ->
