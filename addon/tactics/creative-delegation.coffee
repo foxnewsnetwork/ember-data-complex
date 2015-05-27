@@ -1,6 +1,7 @@
 `import Ember from 'ember'`
 `import { asyncMap } from '../utils/async'`
 `import { ifA, promiseLift, debugLog } from '../utils/arrows'`
+`import CPF from '../utils/cpf'`
 
 noAttrMsg = """
 You passed in blank attributes hash. This was likely because of an internal error with the DSC
@@ -54,14 +55,8 @@ legacyTempStorage = (master) ->
   else
     []
 
-filterComputedProperties = (model, polarize) ->
-  props = []
-  model.constructor.eachComputedProperty (ctx, propName, meta) ->
-    if polarize ctx, propName, meta
-      props.push propName: propName, meta: meta
-  props
 modernTempStorage = (master) ->
-  filterComputedProperties master, (ctx, propName, meta) -> meta?.relationType is "complex-belongs-to"
+  CPF.filter master, (ctx, propName, meta) -> meta?.relationType is "complex-belongs-to"
   .map ({propName, meta}) ->
     attributes: master.get meta.modelName
     metadata:
@@ -69,7 +64,7 @@ modernTempStorage = (master) ->
       slaveName: propName
 
 postModernTempStorage = (master) ->
-  filterComputedProperties master, (ctx, propName, meta) -> meta?.relationType is "complex-promise-to"
+  CPF.filter master, (ctx, propName, meta) -> meta?.relationType is "complex-promise-to"
   .map ({propName, meta}) ->
     attributes: master.get meta.foreignField
     metadata:

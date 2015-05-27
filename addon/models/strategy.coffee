@@ -11,6 +11,7 @@ Strategy = Ember.Object.extend
   onFindAll: null
   onFindById: null
   onFindByQuery: null
+  onPush: null
   beforeCreate: null
   beforeDestroy: null
   beforeUpdate: null

@@ -37,6 +37,14 @@ test "the gamma truck", (assert) ->
         assert.equal gamma.get("id"), "gamma-1"
         assert.equal gamma, truck.get "gamma"
 
+test "calling gamma should force gammaPromise", (assert) ->
+  Ember.run ->
+    store = container.lookup "store:main"
+    store.find "truck", "master-1"
+    .then (truck) ->
+      assert.ok truck.get("gammaPromise"), "the promise should now be there"
+      assert.equal typeof truck.get("gammaPromise.then"), 'function', 'it should be a promise'
+
 test "ember observing", (assert) ->
   visit "/"
   assert.equal find("#last-night-good-night").text(), "", "it should start out blank"

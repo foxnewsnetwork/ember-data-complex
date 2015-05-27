@@ -136,11 +136,11 @@ class Macros
           when idLike model
             @set idField, model
           else
-            f.hasResolved = true
-            f.resolvedValue = model
+            @["-dsc-#{modelField}-has-resolved"] = true
+            @["-dsc-#{modelField}-model"] = model
             @set idField, Ember.get(model, "id")
             @set promiseField, promiseLift model
-      return f.resolvedValue if f.hasResolved is true
+      return @["-dsc-#{modelField}-model"] if @["-dsc-#{modelField}-has-resolved"] is true
       if promise = @get promiseField
         promise.then (model) => 
           @set modelField, model
