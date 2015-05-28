@@ -56,20 +56,26 @@ legacyTempStorage = (master) ->
     []
 
 modernTempStorage = (master) ->
-  CPF.filter master, (ctx, propName, meta) -> meta?.relationType is "complex-belongs-to"
-  .map ({propName, meta}) ->
-    attributes: master.get meta.modelName
+  CPF.filter master, (propName, {relationType}) -> 
+    relationType is "complex-belongs-to"
+  .map ({propName, meta: {idField, promiseField, modelName, relationType}}) ->
+    return if Ember.isBlank master.get propName
+    attributes: master.get propName
     metadata:
-      modelName: meta.modelName
+      modelName: modelName
       slaveName: propName
+  .filter Ember.isPresent
 
 postModernTempStorage = (master) ->
-  CPF.filter master, (ctx, propName, meta) -> meta?.relationType is "complex-promise-to"
+  CPF.filter master, (propName, {relationType}) -> 
+    relationType is "complex-promise-to"
   .map ({propName, meta}) ->
+    return if Ember.isBlank master.get meta.foreignField
     attributes: master.get meta.foreignField
     metadata:
       modelName: meta.modelName
       slaveName: meta.foreignField
+  .filter Ember.isPresent
 
 extractTempStorage = (master) ->
   legacyTempStorage master
@@ -77,7 +83,7 @@ extractTempStorage = (master) ->
   .concat postModernTempStorage master
 
 CreativeDelegationTactic = Ember.Mixin.create
-  saveChild: (attributes: attributes, metadata: metadata) ->
+  saveChild: ({attributes, metadata}) ->
     { modelName: modelName, slaveName: slaveName } = metadata
     model = @store.createRecord modelName, attributes
     model.mastersNameForMe = slaveName

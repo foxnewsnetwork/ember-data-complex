@@ -75,3 +75,49 @@ test "creation when charlie fucks up", (assert) ->
       assert.equal error.deadChildren.length, 1
       assert.equal error.orphans.length, 1
       assert.ok error, "we should encounter an error because charlie fucked up"
+
+test "creative delegation should work with belongsTo2", (assert) ->
+  attributes =
+    delta:
+      songName: "No Title"
+      artist: "Reol"
+
+  Ember.run ->
+    truck = store.createRecord "truck", attributes
+    delta = truck.get "delta"
+    assert.equal delta["songName"], "No Title", "it should have the correct name"
+    assert.equal delta["artist"], "Reol", "it should transfer the attributes correctly"
+
+    truck.save()
+    .then (master) ->
+      assert.ok master, "the master should be ok"
+      assert.ok master.get("id"), "the master should have been saved correctly"
+      master.get "deltaPromise"
+    .then (delta) ->
+      assert.ok delta, "should be saved correctly"
+      assert.ok delta.get("id"), "should have a proper id"
+      assert.equal delta.get("songName"), "No Title"
+      assert.equal delta.get("artist"), "Reol"
+
+test "creative delegation should also work promiseTo", (assert) ->
+  attributes =
+    gamma:
+      songName: "Hibikaze"
+      artist: "Reol"
+
+  Ember.run ->
+    truck = store.createRecord "truck", attributes
+    gamma = truck.get "gamma"
+    assert.equal gamma["songName"], "Hibikaze", "it should have the correct name"
+    assert.equal gamma["artist"], "Reol", "it should transfer the attributes correctly"
+
+    truck.save()
+    .then (master) ->
+      assert.ok master, "the master should be ok"
+      assert.ok master.get("id"), "the master should have been saved correctly"
+      master.get "gammaPromise"
+    .then (gamma) ->
+      assert.ok gamma, "should be saved correctly"
+      assert.ok gamma.get("id"), "should have a proper id"
+      assert.equal gamma.get("songName"), "Hibikaze"
+      assert.equal gamma.get("artist"), "Reol"

@@ -89,7 +89,9 @@ belongsToGet = (ctx, modelName, idField) ->
 idLike = (something) ->
   typeof something is "string" or typeof something is "number"
 
-# dockPromise: promiseTo "dock", foreignKey: "dockId", foreignValue: "dock"
+bareObjectLike = (something) ->
+  typeof something is 'object' and 
+  something instanceof Ember.Object isnt true
 
 class Macros
   @promiseTo = (modelName, foreignKey, foreignField) ->
@@ -98,23 +100,24 @@ class Macros
     Ember.assert noFKey, foreignKey?
     Ember.assert noPField, foreignField?
     f = (promiseField, modelPromise) ->
+      @["-dsc-#{promiseField}-deference"] ?= Ember.RSVP.defer()
       if arguments.length > 1
-        throw new Error alreadySetMsg if @["-dsc-#{promiseField}-promise"]?
+        throw new Error alreadySetMsg if @["-dsc-#{promiseField}-will-resolve"] is true
         Ember.assert notPromiseMsg, promiseLike modelPromise
-        @["-dsc-#{promiseField}-promise"] = modelPromise.then (model) => 
+        @["-dsc-#{promiseField}-will-resolve"] = true
+        modelPromise.then (model) => 
           @set foreignField, model
           @set foreignKey, model.get("id")
-          model
-      return @["-dsc-#{promiseField}-promise"] if promiseLike @["-dsc-#{promiseField}-promise"]
+          @["-dsc-#{promiseField}-deference"].resolve model
+      return @["-dsc-#{promiseField}-deference"].promise if @["-dsc-#{promiseField}-will-resolve"] is true
       if @get(foreignField)?
-        return promiseLift @get foreignField 
-        .then (model) => 
-          @set foreignKey, model.get("id") if model.get("id")?
-          model
+        model = @get foreignField
+        return @["-dsc-#{promiseField}-deference"].promise if bareObjectLike model
+        @set foreignKey, model.get("id")
       if @get(foreignKey)?
         promise = @store.find(modelName, @get foreignKey) 
         @set promiseField, promise
-        promise
+      @get promiseField
     prop = Ember.computed modelName, foreignKey, foreignField, f
     prop.meta
       relationType: "complex-promise-to"
@@ -135,12 +138,14 @@ class Macros
             @set promiseField, model
           when idLike model
             @set idField, model
+          when bareObjectLike model
+            @["-dsc-#{modelField}-model"] = model
           else
             @["-dsc-#{modelField}-has-resolved"] = true
             @["-dsc-#{modelField}-model"] = model
             @set idField, Ember.get(model, "id")
             @set promiseField, promiseLift model
-      return @["-dsc-#{modelField}-model"] if @["-dsc-#{modelField}-has-resolved"] is true
+      return @["-dsc-#{modelField}-model"] if @["-dsc-#{modelField}-has-resolved"] is true or @["-dsc-#{modelField}-model"]?
       if promise = @get promiseField
         promise.then (model) => 
           @set modelField, model
