@@ -16,7 +16,7 @@ initialize = (ctn, app) ->
 
 DataComplexInitializer =
   name: 'data-complex'
-  before: 'store'
+  before: 'ember-data'
   initialize: initialize
 
 `export {initialize}`
