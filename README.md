@@ -1,3 +1,6 @@
+## Currently Unmaintained
+Ember-data is churning and I'm off working on porting a redux solution; this library is no longer maintained.
+
 # Ember Data Complex
 [![Build Status](https://travis-ci.org/foxnewsnetwork/ember-data-complex.svg)](https://travis-ci.org/foxnewsnetwork/ember-data-complex)
 
